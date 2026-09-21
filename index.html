@@ -160,7 +160,18 @@ header{padding:20px 28px;border-bottom:1px solid var(--line);background:rgba(7,2
 .ai-status .dot{width:7px;height:7px;border-radius:50%;background:#45e0ff}
 .ai-status.busy .dot{animation:pulse 1s infinite}
 @media(max-width:700px){.ai-toolbar{grid-template-columns:1fr}.ai-actions{justify-content:stretch}.ai-actions .btn{flex:1}}
+
+#officialMap{height:540px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#071524}
+.official-map-toolbar{display:grid;grid-template-columns:1fr 1fr 1.5fr auto;gap:8px;margin-bottom:10px}
+.official-map-toolbar select,.official-map-toolbar input{padding:10px 11px;border-radius:8px;border:1px solid #244762;background:#071524;color:#fff;outline:none;font-size:12px}
+.official-map-toolbar button{padding:10px 14px;border:0;border-radius:8px;background:linear-gradient(135deg,#087fe1,#1bc4f2);color:#fff;font-weight:800;cursor:pointer}
+.official-meta{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;font-size:10px;color:var(--muted)}
+.official-pill{padding:5px 8px;border:1px solid var(--line);border-radius:999px;background:#081a2b}
+.official-note{font-size:10px;color:var(--muted);line-height:1.5;margin-top:8px}
+@media(max-width:900px){.official-map-toolbar{grid-template-columns:1fr 1fr}.official-map-toolbar input{grid-column:1/-1}.official-map-toolbar button{grid-column:1/-1}}
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3fX0H4g0k8m3j1k2w3Yw4n4V5g5Y=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
 
@@ -256,6 +267,23 @@ header{padding:20px 28px;border-bottom:1px solid var(--line);background:rgba(7,2
       </div>
 
       <div class="content">
+        <!-- MAPA NACIONAL OFICIAL -->
+        <section class="panel full">
+          <h2>Mapa Nacional — Municípios e Regiões do Brasil</h2>
+          <div class="official-map-toolbar">
+            <select id="officialUf"><option value="">Todas as UFs</option></select>
+            <select id="officialRegiao"><option value="">Todas as Grandes Regiões</option></select>
+            <input id="officialCitySearch" list="officialCitiesList" placeholder="Pesquise qualquer município do Brasil...">
+            <button id="officialGo">LOCALIZAR</button>
+          </div>
+          <datalist id="officialCitiesList"></datalist>
+          <div class="official-meta" id="officialMeta">
+            <span class="official-pill">Carregando municípios oficiais do IBGE…</span>
+          </div>
+          <div id="officialMap"></div>
+          <div class="official-note">Base territorial oficial: IBGE, referência 2025. O IBGE informa 5.569 municípios, além do Distrito Federal e do Distrito Estadual de Fernando de Noronha; a base também contempla Regiões Geográficas Imediatas e Intermediárias.</div>
+        </section>
+
         <!-- MAPA -->
         <section class="panel">
           <h2>Sensor de Calor Nacional</h2>
@@ -542,6 +570,105 @@ const PD={
   'Revisão Fiscal':'Revisar apuração, classificação e consistência das obrigações acessórias e principais.',
   'Reforma Tributária':'Preparar impactos de IBS/CBS, documentos fiscais, processos e compliance.'
 };
+
+
+/* ================================================================
+   BASE TERRITORIAL OFICIAL IBGE — TODOS OS MUNICÍPIOS
+   ================================================================ */
+let officialMunicipios=[];
+let officialMap=null;
+let officialMarker=null;
+let officialCityByName=new Map();
+
+function escapeAttr(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+async function loadOfficialMunicipalities(){
+  const meta=document.getElementById('officialMeta');
+  try{
+    const r=await fetch('/api/municipios');
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.error||'Falha ao carregar IBGE');
+    officialMunicipios=data.municipios||[];
+    officialMunicipios.forEach(m=>officialCityByName.set(`${m.nome}|${m.uf}`.toLowerCase(),m));
+
+    const ufs=[...new Map(officialMunicipios.map(m=>[m.uf,m.estado])).entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+    const regioes=[...new Set(officialMunicipios.map(m=>m.regiao).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    document.getElementById('officialUf').innerHTML='<option value="">Todas as UFs</option>'+ufs.map(([sigla,nome])=>`<option value="${escapeAttr(sigla)}">${escapeAttr(sigla)} — ${escapeAttr(nome)}</option>`).join('');
+    document.getElementById('officialRegiao').innerHTML='<option value="">Todas as Grandes Regiões</option>'+regioes.map(r=>`<option>${escapeAttr(r)}</option>`).join('');
+    document.getElementById('officialCitiesList').innerHTML=officialMunicipios.map(m=>`<option value="${escapeAttr(m.nome)} — ${escapeAttr(m.uf)}"></option>`).join('');
+    renderOfficialMeta();
+    initOfficialMap();
+  }catch(err){
+    meta.innerHTML=`<span class="official-pill" style="color:#ff9aa7">${escapeAttr(err.message)}</span>`;
+  }
+}
+
+function filteredOfficialMunicipios(){
+  const uf=document.getElementById('officialUf').value;
+  const reg=document.getElementById('officialRegiao').value;
+  return officialMunicipios.filter(m=>(!uf||m.uf===uf)&&(!reg||m.regiao===reg));
+}
+
+function renderOfficialMeta(){
+  const list=filteredOfficialMunicipios();
+  const ufs=new Set(list.map(m=>m.uf)).size;
+  const rgi=new Set(list.map(m=>m.regiaoImediataId).filter(Boolean)).size;
+  const rgint=new Set(list.map(m=>m.regiaoIntermediariaId).filter(Boolean)).size;
+  document.getElementById('officialMeta').innerHTML=`
+    <span class="official-pill"><b>${list.length.toLocaleString('pt-BR')}</b> municípios disponíveis</span>
+    <span class="official-pill"><b>${ufs}</b> UFs</span>
+    <span class="official-pill"><b>${rgi}</b> regiões imediatas</span>
+    <span class="official-pill"><b>${rgint}</b> regiões intermediárias</span>
+    <span class="official-pill">Fonte: IBGE • DTB 2025</span>`;
+}
+
+function initOfficialMap(){
+  if(officialMap) return;
+  officialMap=L.map('officialMap',{zoomControl:true,worldCopyJump:false}).setView([-14.2,-51.9],4);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(officialMap);
+  L.control.scale({imperial:false}).addTo(officialMap);
+}
+
+async function locateOfficialCity(){
+  const input=document.getElementById('officialCitySearch').value.trim();
+  if(!input) return;
+  let city=input, uf='';
+  const match=input.match(/^(.*)\s+[-–]\s+([A-Z]{2})$/);
+  if(match){city=match[1].trim();uf=match[2];}
+  const found=officialMunicipios.find(m=>m.nome.toLowerCase()===city.toLowerCase()&&(!uf||m.uf===uf));
+  if(!found){
+    const byContains=officialMunicipios.find(m=>`${m.nome} — ${m.uf}`.toLowerCase()===input.toLowerCase());
+    if(byContains){city=byContains.nome;uf=byContains.uf;}
+  }
+  if(!found && !uf){
+    alert('Informe também a UF quando houver cidades com o mesmo nome. Ex.: Campinas — SP');
+    return;
+  }
+  const m=found||officialCityByName.get(`${city}|${uf}`.toLowerCase());
+  if(!m){alert('Município não encontrado na base oficial do IBGE.');return;}
+  try{
+    const r=await fetch(`/api/geocode?cidade=${encodeURIComponent(m.nome)}&uf=${encodeURIComponent(m.uf)}`);
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.error||'Não foi possível localizar no mapa.');
+    const lat=Number(data.lat),lon=Number(data.lon);
+    officialMap.setView([lat,lon],12,{animate:true});
+    if(officialMarker) officialMarker.remove();
+    officialMarker=L.marker([lat,lon]).addTo(officialMap);
+    officialMarker.bindPopup(`<b>${escapeAttr(m.nome)} — ${escapeAttr(m.uf)}</b><br>Região: ${escapeAttr(m.regiao)}<br>Região imediata: ${escapeAttr(m.regiaoImediata)}<br>Região intermediária: ${escapeAttr(m.regiaoIntermediaria)}<br><br><small>Fonte territorial: IBGE 2025</small>`).openPopup();
+  }catch(err){alert(err.message);}
+}
+
+document.getElementById('officialUf').addEventListener('change',()=>{
+  renderOfficialMeta();
+  const uf=document.getElementById('officialUf').value;
+  if(uf){
+    const m=officialMunicipios.find(x=>x.uf===uf);
+    if(m) document.getElementById('officialCitySearch').value=`${m.nome} — ${m.uf}`;
+  }
+});
+document.getElementById('officialRegiao').addEventListener('change',renderOfficialMeta);
+document.getElementById('officialGo').addEventListener('click',locateOfficialCity);
+document.getElementById('officialCitySearch').addEventListener('keydown',e=>{if(e.key==='Enter') locateOfficialCity();});
 
 /* ================================================================
    POSIÇÕES FIXAS NO MAPA (baseado em lat/lon real)
@@ -921,6 +1048,7 @@ document.addEventListener('keydown',e=>{
 /* ================================================================
    INICIAR
    ================================================================ */
+loadOfficialMunicipalities();
 run();
 </script>
 </body>
