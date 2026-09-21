@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SK EXPERT — Inteligência Tributária Nacional</title>
+<style>
+:root{--bg:#06111f;--panel:#0b1b2e;--panel2:#0f2740;--line:#1b3a59;--text:#eef7ff;--muted:#8fa8bf;--blue:#1da1ff;--cyan:#45e0ff;--green:#29d391;--yellow:#ffc857;--red:#ff5c70}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(ellipse at 20% 0%,#103457 0%,#06111f 50%);color:var(--text);font-family:Inter,'Segoe UI',Arial,sans-serif;min-height:100vh}
+header{padding:20px 28px;border-bottom:1px solid var(--line);background:rgba(7,21,34,.92);position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.header-row{display:flex;justify-content:space-between;align-items:center}
+.brand{font-weight:900;letter-spacing:2px;color:#fff;font-size:24px}
+.brand span{color:var(--cyan)}
+.sub{font-size:10px;color:var(--muted);letter-spacing:1.5px;margin-top:3px}
+.header-actions{display:flex;gap:8px;align-items:center}
+.hbtn{padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:11px;cursor:pointer;transition:all .15s;font-weight:600}
+.hbtn:hover{border-color:var(--cyan);color:#fff}
+.hbtn.primary{background:linear-gradient(135deg,#087fe1,#1bc4f2);border-color:transparent;color:#fff}
+.wrap{max-width:1520px;margin:auto;padding:20px}
+.hero{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;margin-bottom:20px}
+.hero h1{font-size:26px;line-height:1.3}
+.hero p{color:var(--muted);max-width:880px;line-height:1.55;font-size:13px}
+.live{padding:10px 16px;border:1px solid #24587d;background:linear-gradient(135deg,#0b2238,#0d2a45);border-radius:10px;color:#8eeaff;font-size:12px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#45e0ff;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* GRID PRINCIPAL */
+.grid{display:grid;grid-template-columns:310px 1fr;gap:16px}
+.panel{background:linear-gradient(145deg,#0a1a2b,#081522);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 12px 36px rgba(0,0,0,.3)}
+.panel h2{font-size:14px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
+.panel h2::before{content:'';width:3px;height:14px;background:var(--cyan);border-radius:2px}
+
+/* FILTROS */
+.filters label{display:block;color:var(--muted);font-size:10.5px;margin:12px 0 5px;text-transform:uppercase;letter-spacing:.5px}
+.filters input,.filters select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #244762;background:#071524;color:#fff;outline:none;font-size:13px;font-family:inherit;transition:border-color .15s}
+.filters input:focus,.filters select:focus{border-color:var(--cyan)}
+.filters input::placeholder{color:#4a6a80}
+.filters select option{background:#0b1b2e;color:#fff}
+.btn{width:100%;padding:12px;border:0;border-radius:9px;background:linear-gradient(135deg,#087fe1,#1bc4f2);color:white;font-weight:800;cursor:pointer;margin-top:12px;font-size:12px;letter-spacing:.3px;transition:all .15s}
+.btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn:active{transform:translateY(0);filter:brightness(.95)}
+.btn.secondary{background:#10283e;border:1px solid #28516e}
+.btn.secondary:hover{border-color:var(--cyan);background:#14304a}
+.foot{color:#5a7a90;font-size:9.5px;margin-top:16px;line-height:1.5;border-top:1px solid var(--line);padding-top:12px}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(145deg,#0c1e30,#0a1825);position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;right:0;width:40px;height:40px;border-radius:0 12px 0 40px;opacity:.08}
+.kpi:nth-child(1)::after{background:var(--cyan)}
+.kpi:nth-child(2)::after{background:var(--red)}
+.kpi:nth-child(3)::after{background:var(--green)}
+.kpi:nth-child(4)::after{background:var(--yellow)}
+.kpi small{color:var(--muted);display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.5px}
+.kpi strong{font-size:22px;display:block;margin-top:6px;font-family:'Inter',sans-serif}
+
+/* CONTEÚDO */
+.content{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:16px}
+
+/* MAPA DE CALOR */
+.heat{height:480px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#16476a 0%,#0b253c 30%,#071522 70%);border-radius:12px;border:1px solid #1b4665}
+.blob{position:absolute;border-radius:50%;filter:blur(14px);opacity:.6;mix-blend-mode:screen;pointer-events:none;transition:opacity .4s}
+.dot{position:absolute;width:10px;height:10px;border-radius:50%;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.dot:hover{transform:scale(1.8);z-index:10}
+.dot.dim{opacity:.25}
+.dot.dim:hover{opacity:.8;transform:scale(1.5)}
+.maplabel{position:absolute;font-size:8.5px;color:#dde8f0;text-shadow:0 1px 4px #000,0 0 8px #0008;font-weight:700;pointer-events:none;white-space:nowrap;letter-spacing:.3px}
+.maplabel.dim{opacity:.25}
+.maplabel.dim:hover{opacity:.7}
+.legend{display:flex;gap:10px;align-items:center;margin-top:10px;color:var(--muted);font-size:10px}
+.bar-grad{height:7px;flex:1;border-radius:7px;background:linear-gradient(90deg,#19bfff,#ffe000,#ff3c55)}
+.tabs{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
+.tab{padding:6px 13px;border-radius:7px;background:#0d2238;border:1px solid #1e3f5c;color:var(--muted);cursor:pointer;font-size:10.5px;font-weight:700;transition:all .15s;user-select:none;letter-spacing:.3px}
+.tab:hover{border-color:var(--cyan);color:#bcd}
+.tab.active{background:linear-gradient(135deg,#087fe1,#1bc4f2);color:#fff;border-color:transparent}
+
+/* REGIÕES */
+.regions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rgn{padding:12px;border:1px solid var(--line);border-radius:10px;background:#0b1d30;cursor:pointer;transition:all .15s}
+.rgn:hover{border-color:#36bfff;background:#0d2238}
+.rgn.active{border-color:var(--cyan);background:#0f2844}
+.rgn .top{display:flex;justify-content:space-between;align-items:center}
+.rgn .cname{font-size:13px;font-weight:700}
+.rgn .ufbadge{font-size:9px;padding:2px 6px;border-radius:4px;background:#10304a;color:#83ddff;font-weight:700;margin-left:6px}
+.score{font-weight:900;font-size:18px}
+.hot{color:#ff6978}
+.warm{color:#ffd35b}
+.cool{color:#55d9ff}
+.mini{height:5px;background:#102d46;border-radius:5px;margin-top:8px;overflow:hidden}
+.mini i{display:block;height:100%;border-radius:5px;transition:width .3s}
+.mini i.hot-bar{background:linear-gradient(90deg,#ff5c70,#ffc857)}
+.mini i.warm-bar{background:linear-gradient(90deg,#1bc4f2,#ffc857)}
+.mini i.cool-bar{background:linear-gradient(90deg,#45e0ff,#1bc4f2)}
+.rgn .meta{font-size:9.5px;color:#5e7e96;margin-top:5px}
+
+/* DETALHE */
+.detail-box{margin-top:12px;padding:14px;border-radius:10px;background:#091520;border:1px solid var(--line);min-height:60px}
+
+/* PRODUTOS */
+.products{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.prod{padding:14px;border:1px solid var(--line);border-radius:10px;background:#091a2b;transition:border-color .15s}
+.prod:hover{border-color:#28516e}
+.prod b{font-size:12px;display:block;margin-bottom:4px}
+.prod p{font-size:10.5px;color:var(--muted);line-height:1.45}
+.tag{display:inline-block;padding:3px 7px;border-radius:20px;background:#103957;color:#83ddff;font-size:8.5px;margin-top:5px;font-weight:600}
+.prod .btn.secondary{margin-top:8px;padding:7px;font-size:9.5px}
+
+/* ANÁLISE */
+.analysis{font-size:12px;line-height:1.6;color:#b5cad8}
+.analysis strong{color:#fff}
+.analysis b{color:var(--cyan)}
+
+/* TABELA */
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th,.tbl td{padding:9px 7px;border-bottom:1px solid #15304a;text-align:left}
+.tbl th{color:#6a92ad;font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;background:var(--panel)}
+.tbl tr:hover td{background:#0d2036}
+.tbl tr{cursor:pointer}
+.tbl tr:hover{background:#0d2036}
+.priority{font-weight:800}
+.high{color:#ff6978}
+.med{color:#ffd35b}
+.low{color:#5bdcff}
+.tbl-wrap{max-height:420px;overflow-y:auto}
+.tbl-wrap::-webkit-scrollbar{width:6px}
+.tbl-wrap::-webkit-scrollbar-track{background:var(--panel)}
+.tbl-wrap::-webkit-scrollbar-thumb{background:#1e3f5c;border-radius:3px}
+
+/* MODAL */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(6,17,31,.88);z-index:200;justify-content:center;align-items:flex-start;padding:40px 20px;overflow-y:auto}
+.modal.show{display:flex}
+.modal-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px;max-width:900px;width:100%;position:relative;margin:auto;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.modal-box h2{color:var(--cyan);font-size:18px;margin-bottom:12px}
+.modal-x{position:absolute;top:16px;right:18px;cursor:pointer;color:var(--muted);font-size:22px;font-weight:900;transition:color .15s;line-height:1}
+.modal-x:hover{color:#fff}
+.modal-box .btn{margin-top:20px}
+
+/* FULL WIDTH */
+.full{grid-column:1/-1}
+
+/* RESPONSIVO */
+@media(max-width:1100px){.grid,.content{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.products{grid-template-columns:1fr 1fr}.regions{grid-template-columns:1fr}.hero{flex-direction:column;align-items:flex-start}}
+@media(max-width:600px){.products{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.wrap{padding:12px}.header-actions{display:none}}
+
+/* IA / PESQUISA ONLINE */
+.ai-panel{margin-top:16px}
+.ai-toolbar{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.ai-input{width:100%;padding:12px 14px;border-radius:9px;border:1px solid #244762;background:#071524;color:#fff;outline:none;font:inherit;font-size:12px}
+.ai-input:focus{border-color:var(--cyan)}
+.ai-actions{display:flex;gap:8px}
+.ai-result{margin-top:12px;padding:14px;border-radius:10px;background:#081522;border:1px solid var(--line);min-height:100px}
+.ai-result.empty{color:#5a7a90}
+.ai-meta{font-size:9.5px;color:#6e8ca3;margin-bottom:10px}
+.ai-answer{font-size:11.5px;line-height:1.65;color:#c3d5e1;white-space:pre-wrap}
+.ai-sources{margin-top:14px;padding-top:12px;border-top:1px solid #15304a}
+.ai-source{display:block;color:#82ddff;font-size:10px;text-decoration:none;margin-top:6px}
+.ai-source:hover{text-decoration:underline;color:#fff}
+.ai-status{display:inline-flex;align-items:center;gap:7px;font-size:9.5px;color:#6e8ca3;margin-top:8px}
+.ai-status .dot{width:7px;height:7px;border-radius:50%;background:#45e0ff}
+.ai-status.busy .dot{animation:pulse 1s infinite}
+@media(max-width:700px){.ai-toolbar{grid-template-columns:1fr}.ai-actions{justify-content:stretch}.ai-actions .btn{flex:1}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div>
+      <div class="brand">SK <span>EXPERT</span></div>
+      <div class="sub">INTELIGÊNCIA COMERCIAL • PROSPECÇÃO • ANÁLISE TRIBUTÁRIA NACIONAL</div>
+    </div>
+    <div class="header-actions">
+      <button class="hbtn" onclick="resetFilters()">⟳ LIMPAR</button>
+      <button class="hbtn" onclick="exportCSV()">↓ CSV</button>
+      <button class="hbtn primary" onclick="generateReport()">📄 RELATÓRIO</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <h1>Painel de Inteligência Tributária Nacional</h1>
+      <p>O sensor de calor transforma região, UF, regime, CNAE e contexto tributário em <b>prioridade comercial</b>. A plataforma cruza oportunidades, produtos e teses de abordagem em todo o Brasil — sem apresentar pontuações estratégicas como se fossem dados fiscais oficiais.</p>
+    </div>
+    <div class="live"><span class="live-dot"></span> MOTOR ESTRATÉGICO ATIVO</div>
+  </div>
+
+  <div class="grid">
+    <!-- SIDEBAR FILTROS -->
+    <aside class="panel filters">
+      <h2>Filtros de Prospecção</h2>
+      <label>UF (Estado)</label>
+      <select id="fUf">
+        <option value="all">Todos os estados</option>
+        <option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option>
+        <option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option>
+        <option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option>
+        <option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option>
+        <option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option>
+        <option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option>
+        <option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option>
+      </select>
+      <label>Macro-Região</label>
+      <select id="fMacro">
+        <option value="all">Todas</option>
+        <option value="Norte">Norte</option>
+        <option value="Nordeste">Nordeste</option>
+        <option value="Centro-Oeste">Centro-Oeste</option>
+        <option value="Sudeste">Sudeste</option>
+        <option value="Sul">Sul</option>
+      </select>
+      <label>Regime Tributário</label>
+      <select id="fRegime">
+        <option value="all">Todos</option>
+        <option>Simples Nacional</option>
+        <option>Lucro Presumido</option>
+        <option>Lucro Real</option>
+        <option>MEI</option>
+      </select>
+      <label>Segmento</label>
+      <select id="fSeg">
+        <option value="all">Todos</option>
+        <option>Comércio</option><option>Indústria</option><option>Serviços</option>
+        <option>Transporte</option><option>Construção</option><option>Saúde</option>
+        <option>Agronegócio</option><option>Tecnologia</option><option>Energia</option>
+      </select>
+      <label>Temperatura mínima</label>
+      <select id="fTemp">
+        <option value="0">Todas</option>
+        <option value="70">Quente 70+</option>
+        <option value="80">Muito quente 80+</option>
+        <option value="90">Extremo 90+</option>
+      </select>
+      <label>Buscar cidade</label>
+      <input id="fCity" placeholder="Ex: São Paulo, Curitiba, Salvador...">
+
+      <button class="btn" onclick="run()">ATUALIZAR SENSOR</button>
+      <button class="btn secondary" onclick="resetFilters()">LIMPAR FILTROS</button>
+      <button class="btn secondary" onclick="exportCSV()">EXPORTAR CSV</button>
+      <button class="btn secondary" onclick="generateReport()">GERAR RELATÓRIO / PDF</button>
+
+      <div class="foot">
+        A camada oficial deve ser alimentada por dados da Receita Federal/Simples Nacional. O score de calor é um índice comercial calculado pelo SK EXPERT — <b>não constitui estimativa oficial de crédito ou economia tributária</b>.
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main>
+      <div class="kpis">
+        <div class="kpi"><small>Empresas no universo</small><strong id="kEmp">—</strong></div>
+        <div class="kpi"><small>Oportunidades quentes</small><strong id="kHot">—</strong></div>
+        <div class="kpi"><small>UFs com oportunidade</small><strong id="kUfs">—</strong></div>
+        <div class="kpi"><small>Índice nacional</small><strong id="kIdx">—</strong></div>
+      </div>
+
+      <div class="content">
+        <!-- MAPA -->
+        <section class="panel">
+          <h2>Sensor de Calor Nacional</h2>
+          <div class="tabs" id="mapTabs"></div>
+          <div class="heat" id="heatmap"></div>
+          <div class="legend"><span>BAIXA</span><div class="bar-grad"></div><span>ALTA PRIORIDADE</span></div>
+        </section>
+
+        <!-- REGIÕES -->
+        <section class="panel">
+          <h2>Regiões Mais Quentes</h2>
+          <div id="rgnBox" class="regions"></div>
+          <div id="detBox" class="detail-box analysis"></div>
+        </section>
+
+        <!-- PRODUTOS -->
+        <section class="panel">
+          <h2>Produtos × Oportunidade</h2>
+          <div id="prodBox" class="products"></div>
+        </section>
+
+        <!-- ANÁLISE -->
+        <section class="panel">
+          <h2>Leitura Tributária Nacional</h2>
+          <div id="anaBox" class="analysis"></div>
+        </section>
+
+        <!-- TABELA -->
+        <section class="panel full">
+          <h2>Fila Comercial Priorizada</h2>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>#</th><th>Prioridade</th><th>UF</th><th>Cidade</th><th>Perfil</th><th>Tese tributária</th><th>Produto sugerido</th><th>Temp.</th></tr></thead>
+              <tbody id="tBody"></tbody>
+            </table>
+          </div>
+        </section>
+      
+        <!-- PESQUISA ONLINE COM IA -->
+        <section class="panel ai-panel full">
+          <h2>IA • Pesquisa Online da Reforma Tributária</h2>
+          <div class="ai-toolbar">
+            <input id="aiQuery" class="ai-input" value="Reforma Tributária 2026: principais mudanças, regulamentações recentes, IBS, CBS e impactos práticos para empresas no Brasil" placeholder="Ex.: O que mudou hoje na regulamentação do IBS e da CBS?">
+            <div class="ai-actions">
+              <button class="btn" id="aiSearchBtn" onclick="runAISearch()" style="margin-top:0;white-space:nowrap">🔎 PESQUISAR AGORA</button>
+              <button class="btn secondary" onclick="aiPreset('Atualizações oficiais mais recentes da Reforma Tributária brasileira, com foco em IBS, CBS, regulamentação, cronograma e normas publicadas')" style="margin-top:0;white-space:nowrap">⟳ ATUALIZAR</button>
+            </div>
+          </div>
+          <div id="aiStatus" class="ai-status"><span class="dot"></span><span>Pesquisa online sob demanda • fontes oficiais priorizadas</span></div>
+          <div id="aiResult" class="ai-result empty">Digite uma pergunta ou use “ATUALIZAR” para consultar a web em tempo real.</div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <span class="modal-x" onclick="closeModal()">✕</span>
+    <div id="modalBody" class="analysis"></div>
+    <button class="btn" onclick="window.print()">IMPRIMIR / SALVAR PDF</button>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   BASE NACIONAL — 42 CIDADES, 27 UFs, 5 MACRO-REGIÕES
+   ================================================================ */
+const DB=[
+// ——— SUDESTE ———
+{n:'São Paulo',u:'SP',m:'Sudeste',s:97,la:-23.55,lo:-46.63,
+ pr:[['Lucro Real','Créditos de PIS/COFINS e recuperação','Recuperação Tributária'],
+      ['Lucro Presumido','Revisão de IRPJ/CSLL e tributos indiretos','Diagnóstico Tributário'],
+      ['Serviços','Reforma tributária + compliance IBS/CBS','Reforma Tributária'],
+      ['Comércio','Classificação NCM e créditos ICMS','Revisão Fiscal'],
+      ['Indústria','Cadeia de créditos e IPI','Recuperação Tributária']],
+ pd:['Recuperação Tributária','Diagnóstico Tributário','Reforma Tributária','Revisão Fiscal','Simples Nacional 2027'],e:86000},
+{n:'Campinas',u:'SP',m:'Sudeste',s:92,la:-22.91,lo:-47.06,
+ pr:[['Indústria','ICMS/IPI e transição IBS','Revisão Fiscal'],
+      ['Lucro Real','Créditos e conformidade','Recuperação Tributária'],
+      ['Tecnologia','Reforma + classificação fiscal','Reforma Tributária']],
+ pd:['Recuperação Tributária','Revisão Fiscal','Reforma Tributária'],e:15200},
+{n:'Santos',u:'SP',m:'Sudeste',s:86,la:-23.96,lo:-46.33,
+ pr:[['Comércio','ICMS importação e créditos','Revisão Fiscal'],
+      ['Transporte','Revisão de ICMS e PIS/COFINS','Recuperação Tributária']],
+ pd:['Revisão Fiscal','Recuperação Tributária'],e:4200},
+{n:'Ribeirão Preto',u:'SP',m:'Sudeste',s:84,la:-21.18,lo:-47.81,
+ pr:[['Agronegócio','ICMS e FUNRURAL','Recuperação Tributária'],
+      ['Comércio','Classificação fiscal','Diagnóstico Tributário']],
+ pd:['Recuperação Tributária','Diagnóstico Tributário'],e:6800},
+{n:'Sorocaba',u:'SP',m:'Sudeste',s:85,la:-23.50,lo:-47.46,
+ pr:[['Indústria','Créditos ICMS/IPI','Recuperação Tributária'],
+      ['Comércio','Revisão de apuração','Diagnóstico Tributário']],
+ pd:['Recuperação Tributária','Diagnóstico Tributário'],e:8100},
+{n:'Rio de Janeiro',u:'RJ',m:'Sudeste',s:95,la:-22.91,lo:-43.17,
+ pr:[['Lucro Real','Recuperação de créditos federais','Recuperação Tributária'],
+      ['Serviços','IBS/CBS e compliance','Reforma Tributária'],
+      ['Comércio','ICMS e revisão fiscal','Revisão Fiscal']],
+ pd:['Recuperação Tributária','Reforma Tributária','Revisão Fiscal'],e:42000},
+{n:'Niterói',u:'RJ',m:'Sudeste',s:80,la:-22.88,lo:-43.10,
+ pr:[['Serviços','NFS-e e transição IBS','Reforma Tributária'],
+      ['Lucro Presumido','Revisão de IRPJ/CSLL','Diagnóstico Tributário']],
+ pd:['Reforma Tributária','Diagnóstico Tributário'],e:5400},
+{n:'Belo Horizonte',u:'MG',m:'Sudeste',s:91,la:-19.92,lo:-43.94,
+ pr:[['Serviços','Reforma + compliance','Reforma Tributária'],
+      ['Lucro Real','Créditos e recuperação','Recuperação Tributária'],
+      ['Comércio','Revisão de apuração','Diagnóstico Tributário']],
+ pd:['Reforma Tributária','Recuperação Tributária','Diagnóstico Tributário'],e:18000},
+{n:'Uberlândia',u:'MG',m:'Sudeste',s:87,la:-18.92,lo:-48.28,
+ pr:[['Agronegócio','ICMS e FUNRURAL','Recuperação Tributária'],
+      ['Comércio','Classificação e créditos','Revisão Fiscal']],
+ pd:['Recuperação Tributária','Revisão Fiscal'],e:7200},
+{n:'Pouso Alegre',u:'MG',m:'Sudeste',s:85,la:-22.23,lo:-45.93,
+ pr:[['Simples Nacional','Exclusão/retorno + planejamento 2027','Simples Nacional 2027'],
+      ['Lucro Presumido','Revisão de tributos indiretos','Diagnóstico Tributário'],
+      ['Comércio','Reforma + classificação fiscal','Revisão Fiscal']],
+ pd:['Simples Nacional 2027','Diagnóstico Tributário','Revisão Fiscal'],e:1284},
+{n:'Extrema',u:'MG',m:'Sudeste',s:82,la:-22.85,lo:-46.32,
+ pr:[['Indústria','ICMS e transição IBS','Revisão Fiscal'],
+      ['Lucro Real','Créditos e conformidade','Recuperação Tributária']],
+ pd:['Recuperação Tributária','Revisão Fiscal'],e:1020},
+{n:'Varginha',u:'MG',m:'Sudeste',s:80,la:-21.55,lo:-45.43,
+ pr:[['Serviços','Simples + NFS-e nacional','Simples Nacional 2027'],
+      ['Comércio','Classificação e créditos','Diagnóstico Tributário']],
+ pd:['Simples Nacional 2027','Diagnóstico Tributário'],e:910},
+{n:'Vitória',u:'ES',m:'Sudeste',s:83,la:-20.32,lo:-40.34,
+ pr:[['Indústria','ICMS e créditos IPI','Recuperação Tributária'],
+      ['Comércio','Revisão de apuração','Diagnóstico Tributário']],
+ pd:['Recuperação Tributária','Diagnóstico Tributário'],e:4800},
+// ——— SUL ———
+{n:'Curitiba',u:'PR',m:'Sul',s:93,la:-25.43,lo:-49.27,
+ pr:[['Indústria','ICMS/IPI e transição IBS','Revisão Fiscal'],
+      ['Lucro Real','Créditos federais','Recuperação Tributária'],
+      ['Serviços','Reforma + compliance','Reforma Tributária']],
+ pd:['Revisão Fiscal','Recuperação Tributária','Reforma Tributária'],e:21000},
+{n:'Londrina',u:'PR',m:'Sul',s:81,la:-23.31,lo:-51.16,
+ pr:[['Agronegócio','ICMS e FUNRURAL','Recuperação Tributária'],
+      ['Comércio','Classificação fiscal','Diagnóstico Tributário']],
+ pd:['Recuperação Tributária','Diagnóstico Tributário'],e:5800},
+{n:'Maringá',u:'PR',m:'Sul',s:79,la:-23.42,lo:-51.94,
+ pr:[['Agronegócio','ICMS e recuperação','Recuperação Tributária'],
+      ['Indústria','Classificação NCM','Revisão Fiscal']],
+ pd:['Recuperação Tributária','Revisão Fiscal'],e:3800},
+{n:'Cascavel',u:'PR',m:'Sul',s:76,la:-24.96,lo:-53.46,
+ pr:[['Agronegócio','ICMS e FUNRURAL','Recuperação Tributária'],
+      ['Comércio','Simples + revisão','Simples Nacional 2027']],
+ pd:['Recuperação Tributária','Simples Nacional 2027'],e:2400},
+{n:'Porto Alegre',u:'RS',m:'Sul',s:92,la:-30.03,lo:-51.23,
+ pr:[['Lucro Real','Créditos e recuperação','Recuperação Tributária'],
+      ['Serviços','IBS/CBS e transição','Reforma Tributária'],
+      ['Comércio','ICMS e revisão','Revisão Fiscal']],
+ pd:['Recuperação Tributária','Reforma Tributária','Revisão Fiscal'],e:19000},
+{n:'Caxias do Sul',u:'RS',m:'Sul',s:84,la:-29.17,lo:-51.18,
+ pr:[['Indústria','ICMS/IPI e créditos','Recuperação Tributária'],
+      ['Lucro Presumido','Revisão de tributos','Diagnóstico Tributário']],
+ pd:['Recuperação Tributária','Diagnóstico Tributário'],e:5600},
+{n:'Pelotas',u:'RS',m:'Sul',s:74,la:-31.77,lo:-52.34,
+ pr:[['Agronegócio','ICMS e FUNRURAL','Recuperação Tributária'],
+      ['Comércio','Simples + revisão','Simples Nacional 2027']],
+ pd:['Recuperação Tributária','Simples Nacional 2027'],e:2200},
+{n:'Florianópolis',u:'SC',m:'Sul',s:88,la:-27.60,lo:-48.55,
+ pr:[['Tecnologia','Reforma + classificação digital','Reforma Tributária'],
+      ['Serviços','NFS-e e IBS/CBS','Reforma Tributária'],
+      ['Lucro Presumido','Revisão de apuração','Diagnóstico Tributário']],
+ pd:['Reforma Tributária','Diagnóstico Tributário'],e:8200},
+{n:'Joinville',u:'SC',m:'Sul',s:85,la:-26.30,lo:-48.84,
+ pr:[['Indústria','ICMS/IPI e créditos','Recuperação Tributária'],
+      ['Comércio','Revisão de apuração','Revisão Fiscal']],
+ pd:['Recuperação Tributária','Revisão Fiscal'],e:6900},
+{n:'Blumenau',u:'SC',m:'Sul',s:81,la:-26.92,lo:-49.06,
+ pr:[['Indústria','Classificação e créditos ICMS','Revisão Fiscal'],
+      ['Indústria','IPI e ICMS têxtil','Recuperação Tributária']],
+ pd:['Revisão Fiscal','Recuperação Tributária'],e:4200},
+// ——— NORDESTE ———
+{n:'Salvador',u:'BA',m:'Nordeste',s:90,la:-12.97,lo:-38.51,
+ pr:[['Lucro Real','Créditos federais e conformidade','Recuperação Tributária'],
+      ['Serviços','IBS/CBS e NFS-e','Reforma Tributária'],
+      ['Comércio','ICMS e revisão','Revisão Fiscal']],
+ pd:['Recuperação Tributária','Reforma Tributária','Revisão Fiscal'],e:16000},
+{n:'Feira de Santana',u:'BA',m:'Nordeste',s:78,la:-12.27,lo:-38.96,
+ pr:[['Comércio','ICMS e classificação','Revisão Fiscal'],
+      ['Agronegócio','FUNRURAL e ICMS','Recuperação Tributária']],
+ pd:['Revisão Fiscal','Recuperação Tributária'],e:3600},
+{n:'Vitória da Conquista',u:'BA',m:'Nordeste',s:73,la:-14.87,lo:-40.80,
+ pr:[['Agronegócio','ICMS e FUNRURAL','Recuperação Tributária'],
+      ['Comércio','Simples e revisão','Simples Nacional 2027']],
+ pd:['Recuperação Tributária','Simples Nacional 2027'],e:1800},
+{n:'Recife',u:'PE',m:'Nordeste',s:88,la:-8.05,lo:-34.87,
+ pr:[['Serviços','IBS/CBS e transição','Reforma Tributária'],
+      ['Lucro Real','Créditos e recuperação','Recuperação Tributária'],
+      ['Tecnologia','Classificação e compliance','Diagnóstico Tributário']],
+ pd:['Reforma Tributária','Recuperação Tributária','Diagnóstico Tributário'],e:12000},
+{n:'Caruaru',u:'PE',m:'Nordeste',s:72,la:-8.29,lo:-35.97,
+ pr:[['Comércio','ICMS e Simples','Simples Nacional 2027'],
+      ['Indústria','Classificação NCM','Revisão Fiscal']],
+ pd:['Simples Nacional 2027','Revisão Fiscal'],e:1600},
+{n:'Fortaleza',u:'CE',m:'Nordeste',s:89,la:-3.72,lo:-38.53,
+ pr:[['Serviços','NFS-e e IBS/CBS','Reforma Tributária'],
+      ['Lucro Presumido','Revisão de IRPJ/CSLL','Diagnóstico Tributário'],
+      ['Comércio','ICMS e créditos','Revisão Fiscal']],
+ pd:['Reforma Tributária','Diagnóstico Tributário','Revisão Fiscal'],e:14000},
+{n:'São Luís',u:'MA',m:'Nordeste',s:79,la:-2.53,lo:-44.28,
+ pr:[['Comércio','ICMS e classificação','Revisão Fiscal'],
+      ['Serviços','NFS-e e transição','Reforma Tributária']],
+ pd:['Revisão Fiscal','Reforma Tributária'],e:4600},
+{n:'Natal',u:'RN',m:'Nordeste',s:81,la:-5.79,lo:-35.21,
+ pr:[['Serviços','NFS-e e IBS','Reforma Tributária'],
+      ['Serviços','ICMS e revisão','Diagnóstico Tributário']],
+ pd:['Reforma Tributária','Diagnóstico Tributário'],e:4200},
+{n:'Maceió',u:'AL',m:'Nordeste',s:76,la:-9.67,lo:-35.74,
+ pr:[['Comércio','ICMS e classificação','Revisão Fiscal'],
+      ['Serviços','Simples + NFS-e','Simples Nacional 2027']],
+ pd:['Revisão Fiscal','Simples Nacional 2027'],e:3200},
+{n:'Teresina',u:'PI',m:'Nordeste',s:74,la:-5.09,lo:-42.80,
+ pr:[['Serviços','Simples e NFS-e','Simples Nacional 2027'],
+      ['Comércio','ICMS e revisão','Diagnóstico Tributário']],
+ pd:['Simples Nacional 2027','Diagnóstico Tributário'],e:2800},
+{n:'João Pessoa',u:'PB',m:'Nordeste',s:77,la:-7.12,lo:-34.84,
+ pr:[['Serviços','NFS-e e transição','Reforma Tributária'],
+      ['Comércio','ICMS e Simples','Simples Nacional 2027']],
+ pd:['Reforma Tributária','Simples Nacional 2027'],e:3500},
+{n:'Aracaju',u:'SE',m:'Nordeste',s:75,la:-10.91,lo:-37.07,
+ pr:[['Comércio','ICMS e classificação','Diagnóstico Tributário'],
+      ['Serviços','Simples e NFS-e','Simples Nacional 2027']],
+ pd:['Diagnóstico Tributário','Simples Nacional 2027'],e:2600},
+// ——— NORTE ———
+{n:'Manaus',u:'AM',m:'Norte',s:86,la:-3.12,lo:-60.02,
+ pr:[['Indústria','IPI, ICMS e Zona Franca','Recuperação Tributária'],
+      ['Lucro Real','Créditos e conformidade','Recuperação Tributária'],
+      ['Comércio','Classificação e revisão','Revisão Fiscal']],
+ pd:['Recuperação Tributária','Revisão Fiscal','Reforma Tributária'],e:9800},
+{n:'Belém',u:'PA',m:'Norte',s:82,la:-1.46,lo:-48.50,
+ pr:[['Comércio','ICMS e classificação','Revisão Fiscal'],
+      ['Serviços','NFS-e e transição','Reforma Tributária']],
+ pd:['Revisão Fiscal','Reforma Tributária'],e:6200},
+{n:'Porto Velho',u:'RO',m:'Norte',s:71,la:-8.76,lo:-63.90,
+ pr:[['Agronegócio','ICMS e FUNRURAL','Recuperação Tributária'],
+      ['Comércio','Simples e revisão','Simples Nacional 2027']],
+ pd:['Recuperação Tributária','Simples Nacional 2027'],e:1600},
+{n:'Rio Branco',u:'AC',m:'Norte',s:68,la:-9.97,lo:-67.81,
+ pr:[['Comércio','Simples e ICMS','Simples Nacional 2027'],
+      ['Serviços','NFS-e e transição','Reforma Tributária']],
+ pd:['Simples Nacional 2027','Reforma Tributária'],e:900},
+{n:'Macapá',u:'AP',m:'Norte',s:66,la:0.03,lo:-51.07,
+ pr:[['Comércio','ICMS e Simples','Simples Nacional 2027'],
+      ['Serviços','NFS-e','Reforma Tributária']],
+ pd:['Simples Nacional 2027','Reforma Tributária'],e:700},
+{n:'Boa Vista',u:'RR',m:'Norte',s:64,la:2.82,lo:-60.67,
+ pr:[['Comércio','Simples e ICMS','Simples Nacional 2027'],
+      ['Serviços','Transição IBS','Reforma Tributária']],
+ pd:['Simples Nacional 2027','Reforma Tributária'],e:550},
+{n:'Palmas',u:'TO',m:'Norte',s:72,la:-10.18,lo:-48.33,
+ pr:[['Agronegócio','ICMS e FUNRURAL','Recuperação Tributária'],
+      ['Comércio','Simples e revisão','Diagnóstico Tributário']],
+ pd:['Recuperação Tributária','Diagnóstico Tributário'],e:1200},
+// ——— CENTRO-OESTE ———
+{n:'Brasília',u:'DF',m:'Centro-Oeste',s:94,la:-15.79,lo:-47.88,
+ pr:[['Serviços','IBS/CBS e compliance','Reforma Tributária'],
+      ['Lucro Real','Créditos federais','Recuperação Tributária'],
+      ['Lucro Presumido','Revisão IRPJ/CSLL','Diagnóstico Tributário']],
+ pd:['Reforma Tributária','Recuperação Tributária','Diagnóstico Tributário'],e:28000},
+{n:'Goiânia',u:'GO',m:'Centro-Oeste',s:84,la:-16.69,lo:-49.25,
+ pr:[['Agronegócio','ICMS e FUNRURAL','Recuperação Tributária'],
+      ['Comércio','Classificação e ICMS','Revisão Fiscal'],
+      ['Serviços','Simples e NFS-e','Simples Nacional 2027']],
+ pd:['Recuperação Tributária','Revisão Fiscal','Simples Nacional 2027'],e:9400},
+{n:'Campo Grande',u:'MS',m:'Centro-Oeste',s:80,la:-20.44,lo:-54.65,
+ pr:[['Agronegócio','ICMS e FUNRURAL','Recuperação Tributária'],
+      ['Comércio','ICMS e classificação','Diagnóstico Tributário']],
+ pd:['Recuperação Tributária','Diagnóstico Tributário'],e:4200},
+{n:'Cuiabá',u:'MT',m:'Centro-Oeste',s:78,la:-15.60,lo:-56.10,
+ pr:[['Agronegócio','ICMS e FUNRURAL','Recuperação Tributária'],
+      ['Comércio','Simples e revisão','Simples Nacional 2027']],
+ pd:['Recuperação Tributária','Simples Nacional 2027'],e:3600}
+];
+
+/* Descrições de produtos */
+const PD={
+  'Diagnóstico Tributário':'Mapear regime, CNAE, obrigações e pontos de risco antes da proposta comercial.',
+  'Simples Nacional 2027':'Analisar elegibilidade, exclusão, retorno e escolha de regime relacionada a IBS/CBS.',
+  'Recuperação Tributária':'Investigar créditos e pagamentos passíveis de revisão conforme documentação fiscal.',
+  'Revisão Fiscal':'Revisar apuração, classificação e consistência das obrigações acessórias e principais.',
+  'Reforma Tributária':'Preparar impactos de IBS/CBS, documentos fiscais, processos e compliance.'
+};
+
+/* ================================================================
+   POSIÇÕES FIXAS NO MAPA (baseado em lat/lon real)
+   ================================================================ */
+const GEO={laMin:-33.7,laMax:5.3,loMin:-74,loMax:-34.8};
+function geo2px(la,lo){
+  const x=((lo-GEO.loMin)/(GEO.loMax-GEO.loMin))*86+5;
+  const y=((GEO.laMax-la)/(GEO.laMax-GEO.laMin))*86+5;
+  return{x:Math.max(3,Math.min(95,x)),y:Math.max(3,Math.min(95,y))};
+}
+const POS={};DB.forEach(d=>{POS[d.n]=geo2px(d.la,d.lo);});
+
+/* Estado global */
+let cur=[];   /* cidades filtradas */
+let aTab='all'; /* aba ativa do mapa */
+let selCity=null; /* cidade selecionada */
+
+/* ================================================================
+   EXECUÇÃO PRINCIPAL
+   ================================================================ */
+function run(){
+  const uf  = document.getElementById('fUf').value;
+  const mac = document.getElementById('fMacro').value;
+  const reg = document.getElementById('fRegime').value;
+  const seg = document.getElementById('fSeg').value;
+  const tmp = +document.getElementById('fTemp').value;
+  const cit = document.getElementById('fCity').value.trim().toLowerCase();
+
+  cur = DB.filter(d=>{
+    if(uf!=='all' && d.u!==uf) return false;
+    if(mac!=='all' && d.m!==mac) return false;
+    if(d.s < tmp) return false;
+    if(cit && d.n.toLowerCase().indexOf(cit)===-1) return false;
+    return true;
+  }).sort((a,b)=>b.s-a.s);
+
+  /* KPIs */
+  const tE=cur.reduce((s,d)=>s+d.e,0);
+  const tH=Math.round(cur.reduce((s,d)=>s+d.e*(d.s/100),0));
+  const uS=new Set(cur.map(d=>d.u)).size;
+  const avg=cur.length?Math.round(cur.reduce((s,d)=>s+d.s,0)/cur.length):0;
+  document.getElementById('kEmp').textContent = tE? tE.toLocaleString('pt-BR') : '—';
+  document.getElementById('kHot').textContent = tH? tH.toLocaleString('pt-BR') : '—';
+  document.getElementById('kUfs').textContent = uS || '—';
+  document.getElementById('kIdx').textContent = avg || '—';
+
+  renderTabs();
+  renderMap();
+  renderRegions();
+  renderProducts();
+  renderAnalysis(reg,seg,uf,mac);
+  renderTable(reg,seg);
+  if(selCity && cur.some(c=>c.n===selCity.n)) renderDetail(selCity);
+  else if(cur.length) renderDetail(cur[0]);
+  else renderDetail(null);
+}
+
+/* ================================================================
+   ABAS DO MAPA
+   ================================================================ */
+function renderTabs(){
+  const T=[{v:'all',l:'BRASIL'},{v:'Sudeste',l:'SUDESTE'},{v:'Sul',l:'SUL'},{v:'Nordeste',l:'NORDESTE'},{v:'Norte',l:'NORTE'},{v:'Centro-Oeste',l:'CENTRO-OESTE'}];
+  document.getElementById('mapTabs').innerHTML = T.map(t=>
+    `<div class="tab${aTab===t.v?' active':''}" data-v="${t.v}">${t.l}</div>`
+  ).join('');
+  document.querySelectorAll('#mapTabs .tab').forEach(el=>{
+    el.onclick=()=>{aTab=el.dataset.v; run();};
+  });
+}
+
+/* ================================================================
+   MAPA DE CALOR
+   ================================================================ */
+function renderMap(){
+  const H=document.getElementById('heatmap');
+  const vis = aTab==='all'? DB : DB.filter(d=>d.m===aTab);
+  const actSet = new Set(cur.map(c=>c.n));
+
+  /* Blobs de atmosfera */
+  let h = '';
+  const blbs=[
+    {w:170,h:170,c:'#ff3d57',l:'18%',t:'15%'},
+    {w:130,h:130,c:'#ffc400',l:'50%',t:'28%'},
+    {w:110,h:110,c:'#23d3ff',l:'72%',t:'8%'},
+    {w:150,h:150,c:'#ff6b00',l:'60%',t:'55%'},
+    {w:100,h:100,c:'#ffd400',l:'20%',t:'60%'},
+    {w:90,h:90,c:'#00e68a',l:'8%',t:'42%'},
+    {w:80,h:80,c:'#5ce1ff',l:'80%',t:'38%'}
+  ];
+  blbs.forEach(b=>{
+    h+=`<div class="blob" style="width:${b.w}px;height:${b.h}px;background:${b.c};left:${b.l};top:${b.t}"></div>`;
+  });
+
+  /* Cidades */
+  vis.forEach(d=>{
+    const p=POS[d.n];
+    const act=actSet.has(d.n);
+    const dim=act?'':' dim';
+    const sc=d.s>=90?'#ff5c70':d.s>=80?'#ffc857':'#55d9ff';
+    const glow=d.s>=90?'0 0 14px #ff5c7080':d.s>=80?'0 0 10px #ffc85780':'0 0 8px #55d9ff60';
+    const sel=selCity&&selCity.n===d.n?'ring:2px solid #fff;':'';
+
+    h+=`<div class="dot${dim}" style="left:${p.x}%;top:${p.y}%;background:${sc};box-shadow:${glow}" data-cn="${d.n}" title="${d.n} (${d.u}) — Score ${d.s}"></div>`;
+    h+=`<span class="maplabel${dim}" style="left:${p.x+1.2}%;top:${p.y+2.2}%">${d.n.toUpperCase()} ${d.s}</span>`;
+  });
+
+  H.innerHTML=h;
+
+  /* Clique no dot → selecionar */
+  H.querySelectorAll('.dot').forEach(dot=>{
+    dot.onclick=()=>{
+      const c=cur.find(x=>x.n===dot.dataset.cn) || DB.find(x=>x.n===dot.dataset.cn);
+      if(c){selCity=c; renderDetail(c); renderRegions();}
+    };
+  });
+}
+
+/* ================================================================
+   CARDS DE REGIÃO
+   ================================================================ */
+function renderRegions(){
+  const el=document.getElementById('rgnBox');
+  if(!cur.length){el.innerHTML='<div class="analysis">Nenhuma cidade encontrada.</div>';return;}
+  el.innerHTML=cur.map((d,i)=>{
+    const sClass=d.s>=90?'hot':d.s>=80?'warm':'cool';
+    const bClass=d.s>=90?'hot-bar':d.s>=80?'warm-bar':'cool-bar';
+    const act=selCity&&selCity.n===d.n?' active':'';
+    return `<div class="rgn${act}" data-i="${i}"><div class="top"><span class="cname">${d.n}<span class="ufbadge">${d.u}</span></span><span class="score ${sClass}">${d.s}</span></div><div class="mini"><i class="${bClass}" style="width:${d.s}%"></i></div><div class="meta">${d.m} • ${d.e.toLocaleString('pt-BR')} empresas</div></div>`;
+  }).join('');
+  el.querySelectorAll('.rgn').forEach(r=>{
+    r.onclick=()=>{selCity=cur[+r.dataset.i]; renderDetail(selCity); renderRegions(); renderMap();};
+  });
+}
+
+function renderDetail(d){
+  const el=document.getElementById('detBox');
+  if(!d){el.innerHTML='<span style="color:#5a7a90">Selecione uma cidade no mapa ou na lista para ver detalhes.</span>';return;}
+  selCity=d;
+  el.innerHTML=`
+    <strong style="font-size:14px">${d.n} (${d.u}) — sensor ${d.s}/100</strong><br>
+    <span style="color:var(--muted);font-size:10px">${d.m} • ${d.e.toLocaleString('pt-BR')} empresas</span><br><br>
+    ${d.pr.map(p=>`<span class="tag">${p[0]}</span> ${p[1]} → <b>${p[2]}</b>`).join('<br>')}
+    <br><br><span style="color:#5a7a90;font-size:10px">Clique em outra cidade para trocar a leitura.</span>
+  `;
+}
+
+/* ================================================================
+   PRODUTOS
+   ================================================================ */
+function renderProducts(){
+  const map={};
+  cur.forEach(d=>d.pd.forEach(p=>{map[p]=(map[p]||0)+1;}));
+  const list=Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  const el=document.getElementById('prodBox');
+  if(!list.length){el.innerHTML='<div class="prod">Nenhum produto no filtro atual.</div>';return;}
+  el.innerHTML=list.map(([n,c])=>
+    `<div class="prod"><b>${n}</b><span class="tag">${c} região(ões)</span><p>${PD[n]||''}</p><button class="btn secondary" onclick="openProduct('${n.replace(/'/g,"\\'")}')" style="margin-top:8px;padding:7px;font-size:9.5px">VER TESE</button></div>`
+  ).join('');
+}
+
+function openProduct(name){
+  const cities=cur.filter(d=>d.pd.includes(name));
+  const profiles=cur.flatMap(d=>d.pr.filter(p=>p[2]===name));
+  document.getElementById('modalBody').innerHTML=`
+    <h2>${name}</h2>
+    <p style="color:var(--muted);font-size:11px;margin-bottom:16px">Produto SK EXPERT — Detalhamento de tese</p>
+    <strong>Descrição:</strong> ${PD[name]||'—'}<br><br>
+    <strong>Cidades que demandam (${cities.length}):</strong><br>
+    ${cities.map(d=>`• ${d.n} (${d.u}) — Score ${d.s} • ${d.e.toLocaleString('pt-BR')} empresas`).join('<br>')}<br><br>
+    <strong>Perfis típicos:</strong><br>
+    ${profiles.map(p=>`• <span class="tag">${p[0]}</span> ${p[1]}`).join('<br>')}<br><br>
+    <strong>Ação sugerida:</strong> Mapear empresas no segmento, cruzar com CNAE e regime tributário, e agendar diagnóstico personalizado.<br><br>
+    <strong>Próximo passo:</strong> Gerar lista de prospects por UF/segmento e iniciar abordagem via time comercial.
+  `;
+  openModal();
+}
+
+/* ================================================================
+   ANÁLISE TRIBUTÁRIA
+   ================================================================ */
+function renderAnalysis(reg,seg,uf,mac){
+  const el=document.getElementById('anaBox');
+  if(!cur.length){el.innerHTML='<strong>Nenhuma oportunidade encontrada.</strong><br>Ajuste os filtros de UF, macro-região, segmento ou temperatura.';return;}
+  const top8=cur.slice(0,8).map(d=>`${d.n} (${d.u})`).join(', ');
+  const rL=reg==='all'?'diferentes regimes':reg;
+  const sL=seg==='all'?'segmentos diversos':seg;
+  const uL=uf==='all'?'todo o Brasil':uf;
+  const mL=mac==='all'?'Brasil':mac;
+  const mc={};cur.forEach(d=>{mc[d.m]=(mc[d.m]||0)+1;});
+  const topM=Object.entries(mc).sort((a,b)=>b[1]-a[1])[0];
+
+  el.innerHTML=`
+    <strong>Leitura comercial nacional:</strong> ${top8}${cur.length>8?' e mais '+String(cur.length-8)+' cidades':''} concentram o universo filtrado em ${rL}, com atenção a ${sL}.<br><br>
+    <strong>Abrangência:</strong> ${uL} • <strong>Macro-região:</strong> ${mL}<br><br>
+    <strong>Distribuição macro-regional:</strong> ${Object.entries(mc).map(([k,v])=>`${k} (${v})`).join(' • ')}<br><br>
+    <strong>Maior concentração:</strong> ${topM?topM[0]+' com '+topM[1]+' cidades no filtro':''}<br><br>
+    <strong>Sensor:</strong> o índice combina densidade empresarial, aderência de produto, tema tributário e contexto regional. <b>Não é estimativa oficial de crédito ou economia.</b><br><br>
+    <strong>Contexto:</strong> a base oficial do CNPJ pode fornecer situação cadastral, atividade econômica, endereço e outros campos. A API oficial exige integração/autenticação, enquanto a Receita também disponibiliza dados abertos do CNPJ.
+  `;
+}
+
+/* ================================================================
+   TABELA DE FILA COMERCIAL
+   ================================================================ */
+function renderTable(reg,seg){
+  const rows=[];
+  cur.forEach(d=>{
+    d.pr.forEach(p=>{
+      const mR=reg==='all'||p[0].indexOf(reg)!==-1;
+      const mS=seg==='all'||p[0].indexOf(seg)!==-1;
+      if(mR&&mS) rows.push({s:d.s,u:d.u,c:d.n,perfil:p[0],tese:p[1],prod:p[2]});
+    });
+  });
+  const el=document.getElementById('tBody');
+  if(!rows.length){el.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Nenhuma tese corresponde aos filtros atuais.</td></tr>';return;}
+  el.innerHTML=rows.slice(0,60).map((r,i)=>{
+    const pClass=r.s>=90?'high':r.s>=80?'med':'low';
+    const pLabel=r.s>=90?'QUENTE':r.s>=80?'MORNO':'FRIO';
+    return `<tr onclick="selectFromTable('${r.c.replace(/'/g,"\\'")}')" style="cursor:pointer"><td>${i+1}</td><td class="priority ${pClass}">${pLabel}</td><td>${r.u}</td><td>${r.c}</td><td>${r.perfil}</td><td>${r.tese}</td><td>${r.prod}</td><td class="priority ${pClass}">${r.s}</td></tr>`;
+  }).join('');
+}
+
+function selectFromTable(name){
+  const d=cur.find(x=>x.n===name)||DB.find(x=>x.n===name);
+  if(d){selCity=d; renderDetail(d); renderRegions(); renderMap();}
+}
+
+/* ================================================================
+   LIMPAR FILTROS
+   ================================================================ */
+function resetFilters(){
+  document.getElementById('fUf').value='all';
+  document.getElementById('fMacro').value='all';
+  document.getElementById('fRegime').value='all';
+  document.getElementById('fSeg').value='all';
+  document.getElementById('fTemp').value='0';
+  document.getElementById('fCity').value='';
+  aTab='all'; selCity=null;
+  run();
+}
+
+/* ================================================================
+   EXPORTAR CSV
+   ================================================================ */
+function exportCSV(){
+  if(!cur.length){alert('Não há dados para exportar.');return;}
+  const hdr=['Cidade','UF','Macro-Região','Score','Empresas','Perfil','Tese','Produto'];
+  const body=cur.flatMap(d=>d.pr.map(p=>[d.n,d.u,d.m,d.s,d.e,p[0],p[1],p[2]]));
+  const all=[hdr,...body];
+  const csv='\ufeff'+all.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='sk_expert_prospeccao_nacional.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ================================================================
+   RELATÓRIO / PDF
+   ================================================================ */
+function generateReport(){
+  if(!cur.length){alert('Não há dados para gerar relatório.');return;}
+  const avg=cur.length?Math.round(cur.reduce((s,d)=>s+d.s,0)/cur.length):0;
+  const tE=cur.reduce((s,d)=>s+d.e,0);
+  const uS=new Set(cur.map(d=>d.u)).size;
+  const mc={};cur.forEach(d=>{mc[d.m]=(mc[d.m]||0)+1;});
+  const pm={};cur.forEach(d=>d.pd.forEach(p=>{pm[p]=(pm[p]||0)+1;}));
+  const pL=Object.entries(pm).sort((a,b)=>b[1]-a[1]);
+  const rows=[];cur.forEach(d=>d.pr.forEach(p=>rows.push({s:d.s,u:d.u,c:d.n,perfil:p[0],tese:p[1],prod:p[2]})));
+
+  document.getElementById('modalBody').innerHTML=`
+    <h2>Relatório de Inteligência Tributária Nacional</h2>
+    <p style="color:var(--muted);font-size:11px">Gerado em ${new Date().toLocaleString('pt-BR')} • SK EXPERT</p>
+    <br>
+    <strong>Resumo executivo</strong><br>
+    Empresas no universo: <b>${tE.toLocaleString('pt-BR')}</b><br>
+    Oportunidades quentes: <b>${Math.round(cur.reduce((s,d)=>s+d.e*(d.s/100),0)).toLocaleString('pt-BR')}</b><br>
+    UFs com oportunidade: <b>${uS}</b><br>
+    Índice médio nacional: <b>${avg}</b><br><br>
+    <strong>Filtros aplicados:</strong><br>
+    UF: ${document.getElementById('fUf').value} •
+    Macro: ${document.getElementById('fMacro').value} •
+    Regime: ${document.getElementById('fRegime').value} •
+    Segmento: ${document.getElementById('fSeg').value} •
+    Temp. mín.: ${document.getElementById('fTemp').value}<br><br>
+    <strong>Top 10 cidades por temperatura:</strong><br>
+    <table class="tbl" style="margin-top:8px"><thead><tr><th>#</th><th>Cidade</th><th>UF</th><th>Macro</th><th>Score</th><th>Empresas</th></tr></thead><tbody>
+    ${cur.slice(0,10).map((d,i)=>`<tr><td>${i+1}</td><td>${d.n}</td><td>${d.u}</td><td>${d.m}</td><td>${d.s}</td><td>${d.e.toLocaleString('pt-BR')}</td></tr>`).join('')}
+    </tbody></table><br>
+    <strong>Distribuição por macro-região:</strong><br>
+    ${Object.entries(mc).map(([k,v])=>`• ${k}: ${v} cidades`).join('<br>')}<br><br>
+    <strong>Produtos mais demandados:</strong><br>
+    ${pL.map(([n,c])=>`• ${n}: ${c} região(ões)`).join('<br>')}<br><br>
+    <strong>Fila comercial priorizada (top 20):</strong><br>
+    <table class="tbl" style="margin-top:8px"><thead><tr><th>#</th><th>Prior.</th><th>UF</th><th>Cidade</th><th>Perfil</th><th>Tese</th><th>Produto</th></tr></thead><tbody>
+    ${rows.slice(0,20).map((r,i)=>{const pC=r.s>=90?'high':r.s>=80?'med':'low';const pL=r.s>=90?'QUENTE':r.s>=80?'MORNO':'FRIO';return`<tr><td>${i+1}</td><td class="priority ${pC}">${pL}</td><td>${r.u}</td><td>${r.c}</td><td>${r.perfil}</td><td>${r.tese}</td><td>${r.prod}</td></tr>`;}).join('')}
+    </tbody></table><br>
+    <strong style="color:var(--muted)">Disclaimer:</strong> Este relatório é um índice comercial calculado pelo SK EXPERT. Não constitui estimativa oficial de crédito ou economia tributária.
+  `;
+  openModal();
+}
+
+
+/* ================================================================
+   IA — PESQUISA ONLINE EM TEMPO REAL
+   ================================================================ */
+function aiPreset(q){
+  document.getElementById('aiQuery').value=q;
+  runAISearch();
+}
+
+function aiEscapeHtml(v){
+  return String(v ?? '').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+
+async function runAISearch(){
+  const input=document.getElementById('aiQuery');
+  const btn=document.getElementById('aiSearchBtn');
+  const status=document.getElementById('aiStatus');
+  const result=document.getElementById('aiResult');
+  const query=input.value.trim();
+  if(!query){ result.className='ai-result empty'; result.textContent='Informe uma pergunta para pesquisar.'; return; }
+
+  btn.disabled=true; btn.textContent='⏳ PESQUISANDO...';
+  status.classList.add('busy');
+  status.innerHTML='<span class="dot"></span><span>Consultando web + IA e conferindo fontes...</span>';
+  result.className='ai-result';
+  result.innerHTML='<div class="ai-meta">Pesquisa iniciada agora...</div><div class="ai-answer">Buscando informações atuais sobre a Reforma Tributária.</div>';
+
+  try{
+    const r=await fetch('/api/reforma-tributaria/pesquisar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query})});
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.error || 'Falha na pesquisa');
+    const sources=(data.sources||[]).map(s=>`<a class="ai-source" href="${aiEscapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">↗ ${aiEscapeHtml(s.title||s.url)}</a>`).join('');
+    result.innerHTML=`<div class="ai-meta">Atualizado em ${new Date(data.searchedAt||Date.now()).toLocaleString('pt-BR')} • ${aiEscapeHtml(data.model||'IA')}</div><div class="ai-answer">${aiEscapeHtml(data.answer||'Sem resposta.')}</div>${sources?`<div class="ai-sources"><strong style="font-size:10px">Fontes encontradas</strong>${sources}</div>`:''}`;
+    status.classList.remove('busy');
+    status.innerHTML='<span class="dot"></span><span>Pesquisa concluída • resultado baseado em fontes online consultadas agora</span>';
+  }catch(err){
+    result.innerHTML=`<div class="ai-answer" style="color:#ff9aa7">${aiEscapeHtml(err.message||'Erro ao pesquisar.')}</div>`;
+    status.classList.remove('busy');
+    status.innerHTML='<span class="dot" style="background:#ff5c70"></span><span>Não foi possível concluir a pesquisa.</span>';
+  }finally{
+    btn.disabled=false; btn.textContent='🔎 PESQUISAR AGORA';
+  }
+}
+
+/* ================================================================
+   MODAL
+   ================================================================ */
+function openModal(){document.getElementById('modal').classList.add('show');}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+
+/* Fechar clicando fora */
+document.getElementById('modal').onclick=function(e){
+  if(e.target===this) closeModal();
+};
+
+/* ================================================================
+   EVENTOS
+   ================================================================ */
+['fUf','fMacro','fRegime','fSeg','fTemp'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',run);
+});
+
+/* Busca com debounce */
+let _dt;
+document.getElementById('fCity').addEventListener('input',()=>{
+  clearTimeout(_dt); _dt=setTimeout(run,350);
+});
+
+/* ESC fecha modal */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeModal();
+});
+
+/* ================================================================
+   INICIAR
+   ================================================================ */
+run();
+</script>
+</body>
+</html>
