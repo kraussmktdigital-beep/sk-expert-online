@@ -21,6 +21,47 @@ const MIME = {
   '.ico': 'image/x-icon'
 };
 
+
+
+let municipiosCache = null;
+let municipiosCacheAt = 0;
+
+async function getMunicipiosIBGE() {
+  const now = Date.now();
+  if (municipiosCache && now - municipiosCacheAt < 6 * 60 * 60 * 1000) {
+    return municipiosCache;
+  }
+
+  const r = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios');
+  if (!r.ok) throw new Error(`IBGE respondeu HTTP ${r.status}`);
+  const raw = await r.json();
+
+  municipiosCache = raw.map(m => {
+    const ri = m['regiao-imediata'];
+    const rg = ri?.['regiao-intermediaria'];
+    const mr = m.microrregiao;
+    const me = mr?.mesorregiao;
+    const uf = me?.UF;
+    const reg = uf?.regiao;
+    return {
+      id: m.id,
+      nome: m.nome,
+      uf: uf?.sigla || '',
+      estado: uf?.nome || '',
+      regiao: reg?.nome || '',
+      regiaoSigla: reg?.sigla || '',
+      regiaoImediataId: ri?.id || null,
+      regiaoImediata: ri?.nome || '',
+      regiaoIntermediariaId: rg?.id || null,
+      regiaoIntermediaria: rg?.nome || '',
+      mesorregiao: me?.nome || '',
+      microrregiao: mr?.nome || ''
+    };
+  });
+  municipiosCacheAt = now;
+  return municipiosCache;
+}
+
 function sendJson(res, status, data) {
   const body = JSON.stringify(data);
   res.writeHead(status, {
@@ -40,156 +81,116 @@ function buildPrompt(query) {
 
 function extractSources(response) {
   const found = new Map();
-
   for (const item of response?.output || []) {
     if (item?.type !== 'message') continue;
-
     for (const content of item.content || []) {
       for (const ann of content.annotations || []) {
         if (ann?.type === 'url_citation' && ann.url) {
-          found.set(ann.url, {
-            title: ann.title || ann.url,
-            url: ann.url
-          });
+          found.set(ann.url, { title: ann.title || ann.url, url: ann.url });
         }
       }
     }
   }
-
   return [...found.values()].slice(0, 10);
 }
 
 async function readBody(req) {
   const chunks = [];
   let size = 0;
-
   for await (const chunk of req) {
     size += chunk.length;
-
-    if (size > 64 * 1024) {
-      throw new Error('Payload muito grande.');
-    }
-
+    if (size > 64 * 1024) throw new Error('Payload muito grande.');
     chunks.push(chunk);
   }
-
   return Buffer.concat(chunks).toString('utf8');
 }
 
 async function searchReforma(query) {
   const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
-
     headers: {
       'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       'Content-Type': 'application/json'
     },
-
     body: JSON.stringify({
       model: MODEL,
-
-      tools: [
-        {
-          type: 'web_search',
-          search_context_size: 'medium'
-        }
-      ],
-
-      reasoning: {
-        effort: 'low'
-      },
-
+      tools: [{ type: 'web_search', search_context_size: 'medium' }],
+      reasoning: { effort: 'low' },
       max_output_tokens: 6000,
-
       input: buildPrompt(query)
     })
   });
 
   const raw = await response.text();
-
   let data;
-
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    data = null;
-  }
-
+  try { data = JSON.parse(raw); } catch { data = null; }
   if (!response.ok) {
-    const message =
-      data?.error?.message ||
-      `OpenAI respondeu HTTP ${response.status}`;
-
+    const message = data?.error?.message || `OpenAI respondeu HTTP ${response.status}`;
     const err = new Error(message);
     err.status = response.status;
-
     throw err;
   }
-
   return data;
 }
 
 async function serveStatic(req, res) {
-  let pathname = decodeURIComponent(
-    new URL(req.url, 'http://localhost').pathname
-  );
-
-  if (pathname === '/') {
-    pathname = '/index.html';
-  }
-
-  const safe = path
-    .normalize(pathname)
-    .replace(/^([.][.][/\\])+/, '');
-
+  let pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+  if (pathname === '/') pathname = '/index.html';
+  const safe = path.normalize(pathname).replace(/^([.][.][/\\])+/, '');
   const file = path.join(PUBLIC_DIR, safe);
-
   try {
     const stat = await fs.stat(file);
-
-    if (!stat.isFile()) {
-      throw new Error('not file');
-    }
-
+    if (!stat.isFile()) throw new Error('not file');
     const ext = path.extname(file).toLowerCase();
-
     res.writeHead(200, {
-      'Content-Type':
-        MIME[ext] || 'application/octet-stream',
-
-      'Cache-Control':
-        ext === '.html'
-          ? 'no-cache'
-          : 'public, max-age=3600'
+      'Content-Type': MIME[ext] || 'application/octet-stream',
+      'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=3600'
     });
-
     res.end(await fs.readFile(file));
   } catch {
-    const index = await fs.readFile(
-      path.join(PUBLIC_DIR, 'index.html')
-    );
-
-    res.writeHead(200, {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'no-cache'
-    });
-
+    const index = await fs.readFile(path.join(PUBLIC_DIR, 'index.html'));
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
     res.end(index);
   }
 }
 
 const server = http.createServer(async (req, res) => {
   try {
-    const url = new URL(
-      req.url,
-      `http://${req.headers.host || 'localhost'}`
-    );
+    const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
 
-    // STATUS DA API
-    if (
-      req.method === 'GET' &&
-      url.pathname === '/api/health'
-    ) {
+    if (req.method === 'GET' && url.pathname === '/api/municipios') {
+      const municipios = await getMunicipiosIBGE();
+      return sendJson(res, 200, {
+        ok: true,
+        fonte: 'IBGE - Divisão Territorial Brasileira',
+        referencia: 2025,
+        total: municipios.length,
+        municipios
+      });
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/geocode') {
+      const cidade = String(url.searchParams.get('cidade') || '').trim();
+      const uf = String(url.searchParams.get('uf') || '').trim();
+      if (!cidade) return sendJson(res, 400, { error: 'Informe a cidade.' });
+      const q = `${cidade}, ${uf}, Brasil`;
+      const endpoint = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=br&q=${encodeURIComponent(q)}`;
+      const r = await fetch(endpoint, {
+        headers: { 'User-Agent': 'SK-EXPERT/1.0 (mapa nacional tributario)' }
+      });
+      if (!r.ok) return sendJson(res, 502, { error: `Serviço de mapas respondeu HTTP ${r.status}` });
+      const data = await r.json();
+      if (!data.length) return sendJson(res, 404, { error: 'Localização não encontrada.' });
+      return sendJson(res, 200, {
+        ok: true,
+        lat: Number(data[0].lat),
+        lon: Number(data[0].lon),
+        display_name: data[0].display_name
+      });
+    }
+
+
+    if (req.method === 'GET' && url.pathname === '/api/health') {
       return sendJson(res, 200, {
         ok: true,
         configured: Boolean(process.env.OPENAI_API_KEY),
@@ -198,105 +199,45 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    // PESQUISA ONLINE DA REFORMA TRIBUTÁRIA
-    if (
-      req.method === 'POST' &&
-      url.pathname ===
-        '/api/reforma-tributaria/pesquisar'
-    ) {
+    if (req.method === 'POST' && url.pathname === '/api/reforma-tributaria/pesquisar') {
       if (!process.env.OPENAI_API_KEY) {
-        return sendJson(res, 503, {
-          error:
-            'OPENAI_API_KEY não configurada no servidor. Copie .env.example para .env e informe sua chave.'
-        });
+        return sendJson(res, 503, { error: 'OPENAI_API_KEY não configurada no servidor. Copie .env.example para .env e informe sua chave.' });
       }
-
       const raw = await readBody(req);
-
       let body;
-
-      try {
-        body = JSON.parse(raw);
-      } catch {
-        return sendJson(res, 400, {
-          error: 'JSON inválido.'
-        });
-      }
-
-      const query = String(
-        body?.query || ''
-      ).trim();
-
-      if (!query) {
-        return sendJson(res, 400, {
-          error: 'Informe uma pesquisa.'
-        });
-      }
-
-      if (query.length > 600) {
-        return sendJson(res, 400, {
-          error:
-            'A pesquisa deve ter no máximo 600 caracteres.'
-        });
-      }
+      try { body = JSON.parse(raw); } catch { return sendJson(res, 400, { error: 'JSON inválido.' }); }
+      const query = String(body?.query || '').trim();
+      if (!query) return sendJson(res, 400, { error: 'Informe uma pesquisa.' });
+      if (query.length > 600) return sendJson(res, 400, { error: 'A pesquisa deve ter no máximo 600 caracteres.' });
 
       let data;
-
       try {
         data = await searchReforma(query);
-
       } catch (firstError) {
-        const msg = String(
-          firstError?.message || ''
-        );
-
-        if (
-          firstError?.status === 429 ||
-          /Rate limit|rate limit|tokens per min|TPM/i.test(
-            msg
-          )
-        ) {
-          await new Promise(resolve =>
-            setTimeout(resolve, 1200)
-          );
-
+        const msg = String(firstError?.message || '');
+        if (firstError?.status === 429 || /Rate limit|rate limit|tokens per min|TPM/i.test(msg)) {
+          await new Promise(resolve => setTimeout(resolve, 1200));
           data = await searchReforma(query);
         } else {
           throw firstError;
         }
       }
-
       return sendJson(res, 200, {
         ok: true,
-
-        answer:
-          data?.output_text ||
-          'Não foi possível gerar uma resposta textual.',
-
+        answer: data?.output_text || 'Não foi possível gerar uma resposta textual.',
         sources: extractSources(data),
-
-        searchedAt:
-          new Date().toISOString(),
-
+        searchedAt: new Date().toISOString(),
         model: MODEL
       });
     }
 
     return await serveStatic(req, res);
-
   } catch (error) {
     console.error(error);
-
-    return sendJson(res, 500, {
-      error:
-        error?.message ||
-        'Erro interno do servidor.'
-    });
+    return sendJson(res, 500, { error: error?.message || 'Erro interno do servidor.' });
   }
 });
 
 server.listen(PORT, () => {
-  console.log(
-    `SK EXPERT online em http://localhost:${PORT}`
-  );
+  console.log(`SK EXPERT online em http://localhost:${PORT}`);
 });
