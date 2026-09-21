@@ -1,42 +1,35 @@
-# SK EXPERT — versão online com pesquisa de Reforma Tributária em tempo real
+[README.md](https://github.com/user-attachments/files/32453924/README.md)
+# SK EXPERT — Inteligência Tributária Nacional
 
-Esta versão mantém o painel HTML original e adiciona uma camada de IA no servidor para pesquisar a web em tempo real sobre Reforma Tributária, IBS, CBS, regulamentação, cronogramas e impactos práticos.
+Versão com mapa nacional real e base territorial oficial do IBGE.
 
-A chave da API fica somente no servidor (`OPENAI_API_KEY`) e nunca é enviada para o navegador.
+## O que esta versão adiciona
 
-## Rodar localmente
+- Mapa real navegável com Leaflet + OpenStreetMap.
+- Busca de qualquer município do Brasil.
+- Base territorial oficial do IBGE carregada pelo endpoint `/api/municipios`.
+- UFs e Grandes Regiões.
+- Regiões Geográficas Imediatas e Intermediárias para cada município.
+- Geocodificação sob demanda para localizar o município no mapa.
+- Mantém a pesquisa online da Reforma Tributária via OpenAI.
 
-Node.js 20+.
+## Base territorial
 
-```bash
-npm start
-```
+A fonte é a Divisão Territorial Brasileira / Malha Municipal do IBGE, referência 2025.
+O IBGE informa 5.569 municípios, além do Distrito Federal e do Distrito Estadual de Fernando de Noronha; a malha também contempla Regiões Geográficas Imediatas, Regiões Geográficas Intermediárias, UFs, Grandes Regiões e País.
 
-Abra `http://localhost:3000`.
+## Render
 
-Configure antes a variável `OPENAI_API_KEY`. O modelo padrão é `gpt-5.6-luna`, mas pode ser trocado em `OPENAI_MODEL`.
+Build Command:
+`npm install`
 
-## API
+Start Command:
+`npm start`
 
-`POST /api/reforma-tributaria/pesquisar`
-
-Exemplo de corpo:
-
-```json
-{"query":"O que mudou recentemente na Reforma Tributária em relação ao IBS e à CBS?"}
-```
-
-O retorno contém a resposta gerada, horário da pesquisa e as fontes URL encontradas pela busca web.
-
-## Deploy online
-
-O projeto inclui `render.yaml`. Em uma hospedagem Node.js, configure:
-
+Variáveis:
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL=gpt-5.6-luna`
 
-Depois use `npm start` como comando de inicialização.
-
 ## Observação
 
-O painel original usa uma base comercial estática de cidades/índices embutida no HTML. A nova pesquisa online é um módulo adicional: ela consulta a web no momento em que o usuário clica em “PESQUISAR AGORA” ou “ATUALIZAR”.
+Os dados territoriais oficiais são carregados em tempo de execução a partir do IBGE. Assim, o projeto não precisa armazenar uma cópia pesada da malha geográfica dentro do GitHub.
